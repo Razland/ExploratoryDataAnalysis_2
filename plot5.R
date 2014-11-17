@@ -7,30 +7,40 @@
 source("loadData.R")  ## Source the utility file that downloads, unzips, and
                       ## reads in the data as needed.
 targFile="plot5.png"
-roadIndex <- sort(unique(SCC[grepl("road", SCC$Data.Category, ignore.case=TRUE), 1]))
+roadIndex <-                                ## Build an index of automotive 
+  sort(                                     ## SCC numbers using on and off-
+    unique(                                 ## road sources from Data.Category.
+      SCC[grepl("road", 
+                SCC$Data.Category, 
+                ignore.case=TRUE), 
+          1]))
 
-Years <- unique(NEI$year)  ## sample years
-p5Data <- data.frame()     ## small storage structure for subset of data
-for( i in 1:length(Years)){                       ## load in data and 
-  p5Data[i,1] <- Years[i]
-  p5Data[i, 2] <- sum(NEI[NEI$fips=="24510" & 
-                          NEI$SCC %in% roadIndex &
-                          NEI$year == Years[i], 
-                          4])
-  
+Years <- unique(NEI$year)                   ## Sample years
+p5Data <- data.frame()                      ## Small storage structure for 
+                                            ## a subset of the data
+for( i in 1:length(Years)){           
+  p5Data[i,1] <- Years[i]                   ## Load sample-dates into frame c1.
+  p5Data[i, 2] <-                           ## Load Baltimore totals by year,
+    sum(NEI[NEI$fips=="24510"               ## using the roadIndex to determine
+           & NEI$SCC %in% roadIndex         ## automotive sources.
+           & NEI$year == Years[i], 
+           4])
   }
-colnames(p5Data) <- c("Year", "Total")
+colnames(p5Data) <- c("Year", "Total")      ## Name the data frame columns
 
-par(pin = c(6, 4),                                     ## Size of plot and
-    lab=c(12, 4, 7),                                   ## other aesthetics
+par(pin = c(6, 4),                          ## Size of plot and
+    lab=c(12, 4, 7),                        ## other aesthetics
     lwd=2,
     mar=c(4,5,4,2)) 
-plot(p5Data$Year,                                      ## Plot
+plot(p5Data$Year,                           ## Line plot data
      p5Data$Total, 
      type="l", 
      ylab="tons", 
      xlab="year", 
-     main="Motor Vehicle Emissions \nfor Baltimore City")
-dev.copy(png, width=600, height=480, file = targFile)  ## output to file
-dev.off()
-rm(p5Data, Years, targFile, i)  ## cleanup
+     main="Motor Vehicle Emissions\nfor Baltimore City")
+dev.copy(png,                               ## Write plot to file.
+         width=600, 
+         height=480, 
+         file=targFile)
+dev.off()                                   ## Close output device.
+rm(p5Data, Years, targFile, i)              ## Clean up environment.
