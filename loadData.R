@@ -16,10 +16,15 @@ if(!file.exists(targFileName)) {                          ## if not present,
   unzip(targFileName)
 }
 ## Lines copied from assignment text:
-print("loading rds file")
-NEI <- readRDS("summarySCC_PM25.rds")
-print("loading code data")
-SCC <- readRDS("Source_Classification_Code.rds")
 
+if(!"NEI" %in% ls()) { 
+  print("loading rds file")
+  NEI <- readRDS("summarySCC_PM25.rds")
+  }
+
+if(!"SCC" %in% ls()) {  
+  print("loading code data")
+  SCC <- readRDS("Source_Classification_Code.rds")
+  }
 
 
