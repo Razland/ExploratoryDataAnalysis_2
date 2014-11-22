@@ -1,3 +1,4 @@
+#! /usr/bin/R -f
 ## File plot1.R Assignment 2 Exploratory Data Analysis November, 2014.
 ## Dave Kenny
 
@@ -9,29 +10,33 @@ source("loadData.R")                        ## Source the utility file that
                                             ## the data as needed.
 targFile="plot1.png"
 
-Years <- unique(NEI$year)                   ## Load sample date-years
-p1Data <- data.frame()                      ## Data structure for data subset
-for( i in 1:length(Years)){                 ## Load in sample dates data and 
-  p1Data[i,1] <- Years[i]                   ## the total emissions.
-  p1Data[i, 2] <- 
-    sum(NEI[NEI$year==Years[i], 
-            4])       
-  }
+getSum <-                                   ## Function to return the sum
+  function(y){                              ## for each year-group of sensor
+    return(sum(NEI[NEI$year==y, 4]))}       ## data
 
-colnames(p1Data) <- c("Year", "Total")      ## Add names to data columns
-par(pin=c(6, 4),                            ## Size of plot and 
-    lab=c(12, 4, 7),                        ## other aesthetics
-    lwd=2,
-    mar=c(4,5,4,2)) 
-plot(p1Data$Year,                           ## Draw the plot
-     p1Data$Total/1000, 
+plotTitle <- paste0("Fine Particulate Matter",
+                    "\nAnnual Emissions")
+years <- unique(NEI$year)                   ## Load sample date-years
+totals <- as.numeric(
+            sapply(
+              years, getSum)/1000)
+
+par(pin = c(6, 4),lab=c(12, 4, 7),          ## Size of the plot and other
+    lwd=2, mar=c(4,5,4,2))                  ## aesthetics
+
+plot(                                       ## Draw plot using data frame made
+     data.frame(                            ## from years and the sum of each
+        Year=years,                         ## sample year emissions.
+        Total=as.numeric(totals)),
      type="l", 
-     ylab="tons (x 1000)", 
-     xlab="year", 
-     main="Fine Particulate Matter\nAnnual Emissions")
+     ylab="Tons (x 1000)", 
+     main=plotTitle)
+
 dev.copy(png,                               ## Write to file 
          width=600, 
          height=480, 
          file=targFile)
+
 dev.off()                                   ## Close the file
-rm(p1Data, Years, targFile, i)              ## Clean up environment
+
+rm(years, totals, targFile, getSum )        ## Clean up environment

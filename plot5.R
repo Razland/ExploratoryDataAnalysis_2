@@ -7,40 +7,38 @@
 source("loadData.R")  ## Source the utility file that downloads, unzips, and
                       ## reads in the data as needed.
 targFile="plot5.png"
-roadIndex <-                                ## Build an index of automotive 
-  sort(                                     ## SCC numbers using on and off-
-    unique(                                 ## road sources from Data.Category.
-      SCC[grepl("road", 
-                SCC$Data.Category, 
-                ignore.case=TRUE), 
-          1]))
+years <- unique(NEI$year)                   ## Load sample date-years
+zipCode <- "24510"                          ## Zip code
+plotTitle <- paste0("Motor Vehicle",
+                    "Emissions\nfor",
+                    "Baltimore City")
 
-Years <- unique(NEI$year)                   ## Sample years
-p5Data <- data.frame()                      ## Small storage structure for 
-                                            ## a subset of the data
-for( i in 1:length(Years)){           
-  p5Data[i,1] <- Years[i]                   ## Load sample-dates into frame c1.
-  p5Data[i, 2] <-                           ## Load Baltimore totals by year,
-    sum(NEI[NEI$fips=="24510"               ## using the roadIndex to determine
-           & NEI$SCC %in% roadIndex         ## automotive sources.
-           & NEI$year == Years[i], 
-           4])
-  }
-colnames(p5Data) <- c("Year", "Total")      ## Name the data frame columns
+getSum <-                                   ## Function to return the sum of
+  function(y){                              ## sensor data for each year-group
+                                            ## and the Baltimore City zip code.
+    roadIndex <- sort( unique(              ## Build an index of automotive 
+      SCC[grepl("road", SCC$Data.Category,  ## SCC numbers using on and off-
+                ignore.case=TRUE),  1]))    ## road sources from Data.Category.
+    return( sum( NEI[     
+                     NEI$year==y 
+                   & NEI$fips==zipCode 
+                   & NEI$SCC %in% roadIndex,
+                   4]))}
 
-par(pin = c(6, 4),                          ## Size of plot and
-    lab=c(12, 4, 7),                        ## other aesthetics
-    lwd=2,
-    mar=c(4,5,4,2)) 
-plot(p5Data$Year,                           ## Line plot data
-     p5Data$Total, 
-     type="l", 
-     ylab="tons", 
-     xlab="year", 
-     main="Motor Vehicle Emissions\nfor Baltimore City")
-dev.copy(png,                               ## Write plot to file.
-         width=600, 
-         height=480, 
+totals <- as.numeric(
+  sapply(years, getSum)/1000)
+
+par(pin = c(6, 4),lab=c(12, 4, 7),          ## Size of the plot and other
+    lwd=2, mar=c(4,5,4,2))                  ## aesthetics
+
+plot(data.frame(                            ## Draw plot using data frame made
+  Year=years, Total=as.numeric(totals)),    ## from years and the sum of each
+  type="l", ylab="Tons",                    ## sample year emissions.
+  main=plotTitle)
+
+dev.copy(png, width=600, height=480,        ## Write plot to file.
          file=targFile)
+
 dev.off()                                   ## Close output device.
-rm(p5Data, Years, targFile, i)              ## Clean up environment.
+rm(years, targFile, zipCode, totals,        ## Clean up environment.
+   plotTitle, getSum)

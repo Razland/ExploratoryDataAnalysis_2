@@ -8,33 +8,30 @@ source("loadData.R")                        ## Source the utility file that
                                             ## downloads, unzips, and reads in
                                             ## the data as needed.
 targFile="plot2.png"
+zipCode <- "24510"                          ## Zip code
 
-Years <- unique(NEI$year)                   ## Read sample date-years
-p2Data <- data.frame()                      ## Data structure for data subset
+getSum <-                                   ## Function to return the sum
+  function(y){                              ## of sensor data for each year-
+    return(sum(NEI[NEI$year==y              ## group and the Baltimore City zip
+                & NEI$fips==zipCode, 4]))}  ## code
 
-for( i in 1:length(Years)){                 ## Load years and total data into
-  p2Data[i,1] <- Years[i]                   ## data structure.
-  p2Data[i, 2] <- 
-    sum(NEI[NEI$year==Years[i] 
-            & NEI$fips=="24510", 
-            4])
-  }
+years <- unique(NEI$year)                   ## Load sample date-years
+totals <- as.numeric(
+  sapply(years, getSum)/1000)
 
-colnames(p2Data) <- c("Year", "Total")      ## Add column labels.
+par(pin = c(6, 4),lab=c(12, 4, 7),          ## Size of the plot and other
+    lwd=2, mar=c(4,5,4,2))                  ## aesthetics
 
-par(pin=c(6, 4),                            ## Size of plot and
-    lab=c(12, 4, 7),                        ## other aesthetics
-    lwd=2,
-    mar=c(4,5,4,2)) 
-plot(p2Data$Year,                           ## Plot data
-     p2Data$Total/1000, 
-     type="l", 
-     ylab="tons (x 1000)", 
-     xlab="year", 
-     main="FPM Annual Emissions\nfor Baltimore City")
-dev.copy(png,                               ## Write plot to file
-         width=600, 
-         height=480, 
-         file=targFile)  ## output to file
+plot(                                       ## Draw plot using data frame made
+  data.frame(                               ## from years and the sum of each
+    Year=years, Total=as.numeric(totals)),  ## sample year emissions.
+  type="l", ylab="Tons (x 1000)",
+  main=paste0("FPM Annual Emissions",
+              "\nfor Baltimore City"))
+
+dev.copy(png, width=600, height=480,        ## Write plot to file
+         file=targFile)                    
+
 dev.off()                                   ## Close file.
-rm(p2Data, Years, targFile, i)              ## Cleanup
+
+rm(years, totals, targFile, getSum)         ## Cleanup
